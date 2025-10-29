@@ -1,4 +1,4 @@
-const app = require('./app').default;
+const app = require('./app');
 const http = require('http');
 require('dotenv').config();
 

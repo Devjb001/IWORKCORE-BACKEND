@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
+const mongoSanitize = require('mongo-sanitize');
+const xss = require('xss');
 const hpp = require('hpp');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
@@ -35,11 +35,29 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
 
-// Data sanitization against XSS
-app.use(xss());
+// Data sanitization middleware 
+app.use((req, res, next) => {
+
+  // Sanitize against NoSQL injection
+  req.body = mongoSanitize(req.body);
+  req.query = mongoSanitize(req.query);
+  req.params = mongoSanitize(req.params);
+
+  // Sanitize against XSS
+  const sanitizeObject = (obj) => {
+    if (!obj) return;
+    for (let key in obj) {
+      if (typeof obj[key] === 'string') {
+        obj[key] = xss(obj[key]);
+      } else if (typeof obj[key] === 'object') {
+        sanitizeObject(obj[key]);
+      }
+    }
+  };
+  sanitizeObject(req.body);
+  next();
+});
 
 // Prevent parameter pollution
 app.use(hpp());
@@ -47,7 +65,7 @@ app.use(hpp());
 // Compression
 app.use(compression());
 
-// Rate limiting - Apply to specific routes only
+// Rate limiting 
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
@@ -70,16 +88,17 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+app.get("/", (req , res) => {
+    console.log("Home route accessed")
+    res.status(200).json({
+      message : 'This is home route, pls select a route to perform an action'
+    })
+})
 
 // Import routes 
 const authRoutes = require('./src/routes/authRoutes');
 
 // Apply rate limiter only to auth routes
-app.get("/", (req , res) => {
-    console.log("Home route accessed")
-    res.status(200).send("This is home route, pls select a route to perform an action")
-})
-
 app.use('/api/auth', limiter, authRoutes);
 
 // Handle undefined routes
