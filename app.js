@@ -99,7 +99,7 @@ app.get("/", (req , res) => {
 const authRoutes = require('./src/routes/authRoutes');
 
 // Apply rate limiter only to auth routes
-app.use('/api/auth', limiter, authRoutes);
+app.use('/api', limiter, authRoutes);
 
 // Handle undefined routes
 app.all(/.*/, (req, res) => {

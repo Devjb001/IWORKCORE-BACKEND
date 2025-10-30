@@ -1,52 +1,58 @@
 const express = require('express');
-const authController = require('../controllers/authController');
-const onboardingController = require('../controllers/onboardingController');
-const { protect, requireEmailVerification } = require('../middlewares/auth');
+const router = express.Router();
+
+// === CONTROLLERS ===
+const { signin } = require('../controllers/authControllers/signin');
+const { signup } = require('../controllers/authControllers/signup');
+const { refreshToken, logout, logoutAll } = require('../controllers/authControllers/signout_refreshToken');
+const { forgotPassword, resetPassword } = require('../controllers/authControllers/forgotPassword');
+const { sendVerificationEmail, verifyEmail, resendVerificationEmail } = require('../controllers/authControllers/verifyMail');
+const { enable2FA, confirm2FA, disable2FA } = require('../controllers/authControllers/twoFactorAuth');
+
+
+// === AUTH MIDDLEWARE ===
+const { 
+  protect, 
+} = require('../middlewares/auth');
+
+// === VALIDATION MIDDLEWARE ===
 const {
+  handleValidationErrors,
   validateSignup,
   validateSignin,
   validateForgotPassword,
   validateResetPassword,
   validate2FACode,
   validateRefreshToken,
-  validateOnboardingStep,
-  handleValidationErrors
 } = require('../middlewares/validation');
 
-const router = express.Router();
 
-// ==================== PUBLIC ROUTES ====================
 
-// Authentication
-router.post('/signup', validateSignup, handleValidationErrors, authController.signup);
-router.post('/signin', validateSignin, handleValidationErrors, authController.signin);
-router.post('/verify-2fa', validate2FACode, handleValidationErrors, authController.verify2FA);
+// === ROUTES ===
 
-// Password Management
-router.post('/forgot-password', validateForgotPassword, handleValidationErrors, authController.forgotPassword);
-router.patch('/reset-password/:token', validateResetPassword, handleValidationErrors, authController.resetPassword);
+// Sign Up
+router.post('/auth/signup', validateSignup, handleValidationErrors, signup);
+
+// Sign In
+router.post('/auth/signin', validateSignin, handleValidationErrors, signin);
 
 // Email Verification
-router.get('/verify-email/:token', authController.verifyEmail);
+router.post('/auth/send-verification-email', sendVerificationEmail);
+router.get('/auth/verify-email/:token', verifyEmail);
+router.post('auth/resend-verification-email', resendVerificationEmail);
 
-// Token Management
-router.post('/refresh-token', validateRefreshToken, handleValidationErrors, authController.refreshToken);
+// Forgot & Reset Password
+router.post('/auth/forgot-password', validateForgotPassword, handleValidationErrors, forgotPassword);
+router.post('/auth/reset-password/:token', validateResetPassword, handleValidationErrors, resetPassword);
 
-// ==================== PROTECTED ROUTES ====================
+// Token Refresh & Logout
+router.post('/auth/refresh-token', validateRefreshToken, handleValidationErrors, refreshToken);
+router.post('/auth/logout', logout);
+router.post('/auth/logout-all', logoutAll);
 
-// Logout
-router.post('/logout', protect, authController.logout);
-router.post('/logout-all', protect, authController.logoutAll);
-
-// Two-Factor Authentication Management
-router.post('/2fa/enable', protect, authController.enable2FA);
-router.post('/2fa/confirm', protect, validate2FACode, handleValidationErrors, authController.confirm2FA);
-router.post('/2fa/disable', protect, validate2FACode, handleValidationErrors, authController.disable2FA);
-
-// Onboarding (requires email verification)
-router.get('/onboarding/status', protect, requireEmailVerification, onboardingController.getOnboardingStatus);
-router.patch('/onboarding/step', protect, requireEmailVerification, validateOnboardingStep, handleValidationErrors, onboardingController.updateOnboardingStep);
-router.post('/onboarding/complete', protect, requireEmailVerification, onboardingController.completeOnboarding);
-router.post('/onboarding/reset', protect, onboardingController.resetOnboarding);
+// 2FA (Two-Factor Authentication)
+// router.post('/2fa/enable', protect, enable2FA);
+// router.post('/2fa/confirm', protect, validate2FACode, handleValidationErrors, confirm2FA);
+// router.post('/2fa/disable', protect, validate2FACode, handleValidationErrors, disable2FA);
 
 module.exports = router;
