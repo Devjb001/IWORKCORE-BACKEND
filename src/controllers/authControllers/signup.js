@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
-const { sendEmail } = require('../../utils/email');
-
+const { queueEmail } = require('../../utils/email'); 
 
 exports.signup = async (req, res) => {
   let user;
+  let isNewUser = false;
 
   try {
     const { firstName, lastName, email, password, phone, inviteToken } = req.body;
@@ -60,25 +60,27 @@ exports.signup = async (req, res) => {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     });
 
-    //Save user
+    // Save user
     await user.save({ validateBeforeSave: false });
+    isNewUser = true;
 
-    //  Mark invite as accepted if applicable
+    // Mark invite as accepted if applicable
     if (inviteToken) {
       const Invite = require('../../models/Invitation');
       await Invite.findOneAndUpdate({ token: inviteToken }, { status: 'accepted' });
     }
 
-    // Send email AFTER everything succeeds
+    // Queue email 
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
-    await sendEmail({
+    queueEmail({
       to: user.email,
-      subject: 'Verify Your Email - iWorkCore HR',
       template: 'emailVerification',
       data: { name: user.firstName, verificationUrl }
+    }).catch(err => {
+      console.error('Failed to queue verification email:', err);
     });
 
-    // Respond
+
     res.status(201).json({
       status: 'success',
       message: invitedCompany
@@ -99,15 +101,20 @@ exports.signup = async (req, res) => {
         refreshToken
       }
     });
+
   } catch (error) {
-    // rollback only if user was partially created
-    if (user && user._id) {
-      await User.findByIdAndDelete(user._id);
+    //rollback if user was created in THIS request
+    if (isNewUser && user && user._id) {
+      await User.findByIdAndDelete(user._id).catch(err => {
+        console.error('Rollback failed:', err);
+      });
     }
 
-    res.status(500).json({
-      status: 'error',
-      message: error.message
-    });
+    if (!res.headersSent) {
+      res.status(500).json({
+        status: 'error',
+        message: error.message
+      });
+    }
   }
 };

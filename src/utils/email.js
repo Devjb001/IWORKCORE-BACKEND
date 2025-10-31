@@ -1,5 +1,7 @@
 const nodemailer = require('nodemailer');
-require('dotenv').config()
+const emailQueue = require('../config/emailQueue');
+require('dotenv').config();
+
 // Create transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
@@ -9,7 +11,10 @@ const createTransporter = () => {
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD
-    }
+    },
+    pool: true, 
+    maxConnections: 5,
+    maxMessages: 100
   });
 };
 
@@ -122,7 +127,28 @@ const templates = {
   })
 };
 
-// Send email function
+// Queue email 
+exports.queueEmail = async (options) => {
+  try {
+    await emailQueue.add('send-email', options, {
+      attempts: 3, 
+      backoff: {
+        type: 'exponential',
+        delay: 2000 
+      },
+      removeOnComplete: true, 
+      removeOnFail: false 
+    });
+    
+    console.log(`Email queued for ${options.to}`);
+    return true;
+  } catch (error) {
+    console.error('Failed to queue email:', error);
+    throw new Error('Failed to queue email');
+  }
+};
+
+// Send email function 
 exports.sendEmail = async (options) => {
   try {
     const transporter = createTransporter();
@@ -149,3 +175,6 @@ exports.sendEmail = async (options) => {
     throw new Error('Failed to send email');
   }
 };
+
+
+exports.templates = templates;
