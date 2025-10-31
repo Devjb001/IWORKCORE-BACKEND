@@ -2,7 +2,9 @@ const app = require('./app');
 const http = require('http');
 require('dotenv').config();
 
-
+if (process.env.NODE_ENV !== 'test') {
+  require('./src/workers/emailWorker');
+}
 
 const server = http.createServer(app);
 

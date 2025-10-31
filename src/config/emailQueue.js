@@ -1,6 +1,6 @@
 const { Queue } = require('bullmq');
 
-// Your Redis URL
+// Redis URL
 const redisUrl = process.env.REDIS_URL
 
 const connection = {
