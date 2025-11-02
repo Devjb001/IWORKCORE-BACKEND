@@ -1,5 +1,5 @@
 const { Worker } = require('bullmq');
-const { sendEmail } = require('../utils/email');
+const { sendEmail } = require('./src/utils/email');
 require('dotenv').config();
 
 const redisUrl = process.env.REDIS_URL
