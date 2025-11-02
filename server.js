@@ -2,7 +2,10 @@ const app = require('./app');
 const http = require('http');
 require('dotenv').config();
 
-require('./emailWorker');
+if (process.env.NODE_ENV === 'production' && process.env.REDIS_URL) {
+  require('./emailWorker');
+  console.log('Email worker enabled');
+}
 
 const server = http.createServer(app);
 
