@@ -28,12 +28,40 @@ if (process.env.NODE_ENV === 'development') {
 app.use(helmet());
 
 // CORS
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',')
+  : [];
+
+if (process.env.NODE_ENV === 'development') {
+  allowedOrigins.push(
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173'
+  );
+}
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3001'],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
+
 app.use(cors(corsOptions));
+
+// const corsOptions = {
+//   origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3001'] || ['http://localhost:5173'],
+//   credentials: true,
+//   optionsSuccessStatus: 200
+// };
+
+// app.use(cors(corsOptions));
 
 
 // Data sanitization middleware 
@@ -88,11 +116,11 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
-app.get("/", (req , res) => {
-    console.log("Home route accessed")
-    res.status(200).json({
-      message : 'This is home route, pls select a route to perform an action'
-    })
+app.get("/", (req, res) => {
+  console.log("Home route accessed")
+  res.status(200).json({
+    message: 'This is home route, pls select a route to perform an action'
+  })
 })
 
 // Import routes 
