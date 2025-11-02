@@ -130,7 +130,8 @@ const templates = {
 // Queue email 
 exports.queueEmail = async (options) => {
   try {
-    await emailQueue.add('send-email', options, {
+    // await emailQueue.add('send-email', options, {
+    await emailQueue.add('email', options, {
       attempts: 3, 
       backoff: {
         type: 'exponential',

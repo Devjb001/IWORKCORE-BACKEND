@@ -39,7 +39,7 @@ router.post('/auth/signin', validateSignin, handleValidationErrors, signin);
 // Email Verification
 router.post('/auth/send-verification-email', sendVerificationEmail);
 router.get('/auth/verify-email/:token', verifyEmail);
-router.post('auth/resend-verification-email', resendVerificationEmail);
+router.post('/auth/resend-verification-email', resendVerificationEmail);
 
 // Forgot & Reset Password
 router.post('/auth/forgot-password', validateForgotPassword, handleValidationErrors, forgotPassword);
