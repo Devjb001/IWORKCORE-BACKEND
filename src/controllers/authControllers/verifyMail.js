@@ -23,7 +23,7 @@ exports.sendVerificationEmail = async (req, res) => {
     }
 
     // Generate verification token
-    const verificationToken = user.generateSecureToken('emailVerificationToken', 60);
+    const verificationToken = user.emailVerificationToken('emailVerificationToken', 60);
     await user.save({ validateBeforeSave: false });
 
     // Construct verification link

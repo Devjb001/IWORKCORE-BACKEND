@@ -45,7 +45,7 @@ exports.signup = async (req, res) => {
     });
 
     // Create email verification token
-   const verificationToken = user.generateSecureToken('emailVerificationToken', 1440);
+    const verificationToken = user.createEmailVerificationToken();
 
     // Generate tokens
     const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
