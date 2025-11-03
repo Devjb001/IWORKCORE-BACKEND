@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Generate email verification token
-userSchema.methods.createEmailVerificationToken = function() {
+userSchema.methods.generateSecureToken = function() {
   const verificationToken = crypto.randomBytes(32).toString('hex');
   
   this.emailVerificationToken = crypto
