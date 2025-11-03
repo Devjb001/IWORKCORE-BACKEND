@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const User = require('../../models/User');
 const { sendEmail } = require('../../utils/email');
+require('dotenv').config()
 
 // ====================== SEND VERIFICATION EMAIL ======================
 exports.sendVerificationEmail = async (req, res) => {
