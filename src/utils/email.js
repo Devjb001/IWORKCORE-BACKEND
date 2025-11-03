@@ -1,24 +1,9 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const emailQueue = require('../config/emailQueue');
-require('dotenv').config();
 
-// Create transporter
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: process.env.EMAIL_SECURE === 'true',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    },
-    pool: true, 
-    maxConnections: 5,
-    maxMessages: 100
-  });
-};
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Email templates
+// Email templates 
 const templates = {
   emailVerification: (data) => ({
     subject: 'Verify Your Email - iWorkCore HR',
@@ -56,19 +41,6 @@ const templates = {
           </div>
         </body>
       </html>
-    `,
-    text: `
-      Hi ${data.name},
-      
-      Thank you for signing up! Please verify your email address by clicking the link below:
-      
-      ${data.verificationUrl}
-      
-      This link will expire in 24 hours.
-      
-      If you didn't create an account, please ignore this email.
-      
-      © ${new Date().getFullYear()} iWorkCore HR. All rights reserved.
     `
   }),
 
@@ -110,36 +82,14 @@ const templates = {
           </div>
         </body>
       </html>
-    `,
-    text: `
-      Hi ${data.name},
-      
-      We received a request to reset your password. Click the link below to create a new password:
-      
-      ${data.resetUrl}
-      
-      This link will expire in 10 minutes for security reasons.
-      
-      If you didn't request a password reset, please ignore this email or contact support if you have concerns.
-      
-      © ${new Date().getFullYear()} TeamFlow HR. All rights reserved.
     `
   })
 };
 
-// Queue email 
+// Queue email
 exports.queueEmail = async (options) => {
   try {
-    // await emailQueue.add('send-email', options, {
-    await emailQueue.add('email', options, {
-      attempts: 3, 
-      backoff: {
-        type: 'exponential',
-        delay: 2000 
-      },
-      removeOnComplete: true, 
-      removeOnFail: false 
-    });
+    await emailQueue.add('email', options);
     
     console.log(`Email queued for ${options.to}`);
     return true;
@@ -149,25 +99,17 @@ exports.queueEmail = async (options) => {
   }
 };
 
-// Send email function 
+// Send email
 exports.sendEmail = async (options) => {
   try {
-    const transporter = createTransporter();
-    
-    // Get template
     const template = templates[options.template](options.data);
     
-    // Email options
-    const mailOptions = {
-      from: `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_FROM}>`,
+    await resend.emails.send({
+      from: 'TeamFlow HR <onboarding@resend.dev>',
       to: options.to,
-      subject: options.subject || template.subject,
-      html: template.html,
-      text: template.text
-    };
-
-    // Send email
-    await transporter.sendMail(mailOptions);
+      subject: template.subject,
+      html: template.html
+    });
     
     console.log(`Email sent successfully to ${options.to}`);
     return true;
@@ -176,6 +118,5 @@ exports.sendEmail = async (options) => {
     throw new Error('Failed to send email');
   }
 };
-
 
 exports.templates = templates;
