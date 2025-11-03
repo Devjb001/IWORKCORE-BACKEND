@@ -23,7 +23,7 @@ exports.sendVerificationEmail = async (req, res) => {
     }
 
     // Generate verification token
-    const verificationToken = user.generateSecureToken('emailVerificationToken', 60); // 1 hour expiry
+    const verificationToken = user.generateSecureToken('emailVerificationToken', 60);
     await user.save({ validateBeforeSave: false });
 
     // Construct verification link
@@ -127,7 +127,7 @@ exports.resendVerificationEmail = async (req, res) => {
     const newVerificationToken = user.generateSecureToken('emailVerificationToken', 60);
     await user.save({ validateBeforeSave: false });
 
-    const verifyURL = `${process.env.FRONTEND_URL}/verify-email/${newVerificationToken}`;
+    const verifyURL = `${process.env.FRONTEND_URL}/auth/verify-email/${newVerificationToken}`;
 
     await sendEmail({
       to: user.email,
