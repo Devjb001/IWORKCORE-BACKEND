@@ -40,19 +40,7 @@ const userSchema = new mongoose.Schema({
   }]
 }, { timestamps: true });
 
-// Generate email verification token
-userSchema.methods.createEmailVerificationToken = function() {
-  const verificationToken = crypto.randomBytes(32).toString('hex');
-  
-  this.emailVerificationToken = crypto
-    .createHash('sha256')
-    .update(verificationToken)
-    .digest('hex');
-  
-  this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
-  
-  return verificationToken;
-};
+// Generate email verification toke
 
 userSchema.methods.generateSecureToken = function (field, expiresInMinutes = 15) {
 
