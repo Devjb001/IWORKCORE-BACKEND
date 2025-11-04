@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const User = require('../../models/User');
 const { sendEmail } = require('../../utils/email');
-require('dotenv').config()
+require('dotenv').config();
 
 // ====================== SEND VERIFICATION EMAIL ======================
 exports.sendVerificationEmail = async (req, res) => {
@@ -33,7 +33,7 @@ exports.sendVerificationEmail = async (req, res) => {
       to: user.email,
       subject: 'Verify Your Email Address',
       html: `
-        <h2>Welcome to TeamFlow HR</h2>
+        <h2>Welcome to iWorkCore</h2>
         <p>Please confirm your email address by clicking the link below:</p>
         <a href="${verifyURL}" target="_blank">Verify Email</a>
         <p>This link will expire in 1 hour.</p>
@@ -134,7 +134,7 @@ exports.resendVerificationEmail = async (req, res) => {
       subject: 'Resend - Verify Your Email Address',
       html: `
         <h2>Verify Your Email Address</h2>
-        <p>Here’s a new verification link for your TeamFlow HR account:</p>
+        <p>Here’s a new verification link for your iWorkCore account:</p>
         <a href="${verifyURL}" target="_blank">Verify Email</a>
         <p>This link will expire in 1 hour.</p>
       `,
