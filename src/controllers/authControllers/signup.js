@@ -76,7 +76,7 @@ exports.signup = async (req, res) => {
     queueEmail({
       to: user.email,
       template: 'emailVerification',
-      data: { name: user.email, verificationUrl }
+      data: { email: user.email, verificationUrl }
     }).catch(err => {
       console.error('Failed to queue verification email:', err);
     });

@@ -8,6 +8,7 @@ const { refreshToken, logout, logoutAll } = require('../controllers/authControll
 const { forgotPassword, resetPassword } = require('../controllers/authControllers/forgotPassword');
 const { sendVerificationEmail, verifyEmail, resendVerificationEmail } = require('../controllers/authControllers/verifyMail');
 const { enable2FA, confirm2FA, disable2FA } = require('../controllers/authControllers/twoFactorAuth');
+const { deleteAccount } = require('../controllers/authControllers/deleteAccount');
 
 
 // === AUTH MIDDLEWARE ===
@@ -28,13 +29,11 @@ const {
 
 
 
+
 // === ROUTES ===
-
-// Sign Up
 router.post('/auth/signup', validateSignup, handleValidationErrors, signup);
-
-// Sign In
 router.post('/auth/signin', validateSignin, handleValidationErrors, signin);
+router.delete("/auth/delete-account", protect, deleteAccount);
 
 // Email Verification
 router.post('/auth/send-verification-email', sendVerificationEmail);

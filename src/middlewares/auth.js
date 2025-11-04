@@ -32,12 +32,12 @@ exports.protect = async (req, res, next) => {
     }
 
     // Check if user is active
-    if (!user.isActive) {
-      return res.status(403).json({
-        status: 'error',
-        message: 'Your account has been deactivated.'
-      });
-    }
+    // if (!user.isActive) {
+    //   return res.status(403).json({
+    //     status: 'error',
+    //     message: 'Your account has been deactivated.'
+    //   });
+    // }
 
     // Grant access
     req.user = user;
